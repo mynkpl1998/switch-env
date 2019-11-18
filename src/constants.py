@@ -1,0 +1,4 @@
+OBJECT_MAP = {}
+OBJECT_MAP['x'] = 2
+OBJECT_MAP['o'] = 0
+OBJECT_MAP['T'] = 1
