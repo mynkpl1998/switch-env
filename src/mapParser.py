@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-class mapParser:
+class mapParser():
 
     def __init__(self, mapHandle):
         self.mapHandle = mapHandle
