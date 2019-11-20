@@ -1,10 +1,12 @@
 import gym
+import time
 import pygame
+from ui import ui
 import numpy as np
-
 from common import readFile
 from mapParser import mapParser
 from constants import OBJECT_MAP, AGENT_START_INDEX
+
 
 class makeEnv():
 
@@ -19,6 +21,10 @@ class makeEnv():
         # Parse map
         self.gridParser = mapParser(self.gridMapFileHandle)
         self.parsedMap = self.gridParser.parseMap()
+
+        # UI object
+        self.uiHandler = ui(self.parsedMap['agentLocs'])
+        self.viewer = None
     
 
     def getAgentObservation(self, agentLoc, gridMap):
@@ -61,13 +67,27 @@ class makeEnv():
         # Init agents
         self.agentLocs = {}
         for agent in range(0, self.parsedMap['numAgents']):
-            agentName = 'agent_%d'%(agent)
-            agentLoc = self.parsedMap['agentLocs'][agent+1]
+            agentName = 'agent_%d'%(agent+1)
+            agentLoc = self.parsedMap['agentLocs'][agentName]
             self.agentLocs[agentName] = [agentLoc[0], agentLoc[1]]
-            #self.gridMap[agentLoc[0], agentLoc[1]] = OBJECT_MAP['x']
 
         # Init obstacles
         for blockedCell in self.parsedMap['blockedCells']:
             self.gridMap[blockedCell[0], blockedCell[1]] = OBJECT_MAP['T']
+
+        # Put agents in the grids
+        for idx, agent in enumerate(self.parsedMap['agentLocs'].keys()):
+            self.gridMap[self.parsedMap['agentLocs'][agent][0], self.parsedMap['agentLocs'][agent][1]] = AGENT_START_INDEX + idx
         
         return self.getAllAgentsObservation(self.agentLocs, self.gridMap.copy())
+    
+    def render(self,):
+        img = self.uiHandler.render(self.gridMap, self.agentLocs, self.parsedMap['agentGoals'])
+
+        img = np.asarray(img)
+        from gym.envs.classic_control import rendering
+        if self.viewer is None:
+            self.viewer = rendering.SimpleImageViewer()
+        self.viewer.imshow(img)
+        time.sleep(100)
+        return self.viewer.isopen

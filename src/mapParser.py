@@ -11,25 +11,35 @@ class mapParser():
         gridMap = gridMap.dropna(axis=1, how='all')
         rows, cols = {}, {}
         rows['rows'], cols['cols'] = gridMap.shape[0], gridMap.shape[1]
-        numAgents, agentLocs = self.parseAgents(gridMap)
+        numAgents, agentLocs, agentGoals = self.parseAgents(gridMap)
         obstacles = self.parseObstacles(gridMap)
-        return self.packData(numAgents, agentLocs, obstacles, rows, cols)
+        return self.packData(numAgents, agentLocs, agentGoals, obstacles, rows, cols)
     
     def parseAgents(self, gridMap):
         numAgents = {}
         numAgents['numAgents'] = 0
         agentLocs = {}
         agentLocs['agentLocs'] = {}
+        agentGoals = {}
+        agentGoals['agentGoals'] = {}
 
         rows, cols = gridMap.shape[0], gridMap.shape[1]
         
         for row in range(0, rows):
             for col in range(0, cols):
-                if gridMap.iloc[row][col] == 'x':
+                if gridMap.iloc[row][col].startswith('x') and gridMap.iloc[row][col].endswith('s'):
                     numAgents['numAgents'] += 1
-                    agentLocs['agentLocs'][numAgents['numAgents']] = (row, col)
+                    agentName = 'agent_%d'%(int(gridMap.iloc[row][col][1]))
+                    agentGoals['agentGoals'][agentName] = None
+                    agentLocs['agentLocs'][agentName] = (row, col)
         
-        return numAgents, agentLocs
+        for row in range(0, rows):
+            for col in range(0, cols):
+                if gridMap.iloc[row][col].startswith('x') and gridMap.iloc[row][col].endswith('e'):
+                    agentName = 'agent_%d'%(int(gridMap.iloc[row][col][1]))
+                    agentGoals['agentGoals'][agentName] = (row, col)
+        
+        return numAgents, agentLocs, agentGoals
     
     def parseObstacles(self, gridMap):
         blockedCells = {}
