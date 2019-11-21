@@ -53,30 +53,28 @@ class makeEnv():
             obs[agentID] = self.getAgentObservation(agentLocs[agentID], gridMap)
         obs['state'] = self.getState(gridMap)
         return obs
+    
+    def populateObstacles(self, obstaclesLocs, grid):
+        for blockedCell in obstaclesLocs:
+            grid[blockedCell[0], blockedCell[1]] = OBJECT_MAP['T']
+        return grid
+    
+    def populateAgents(self, agentLocs, grid):
+        for idx, agent in enumerate(agentLocs.keys()):
+            grid[agentLocs[agent][0], agentLocs[agent][1]] = 100 + int(agent[-1])
+        return grid
 
     def reset(self):
         # Create empty grid
-        self.gridMap = np.zeros((self.parsedMap['rows'], self.parsedMap['cols']))
+        gridMap = np.zeros((self.parsedMap['rows'], self.parsedMap['cols']))
 
-        # Init agents
-        self.agentLocs = {}
-        for agent in range(0, self.parsedMap['numAgents']):
-            agentName = 'agent_%d'%(agent+1)
-            agentLoc = self.parsedMap['agentLocs'][agentName]
-            self.agentLocs[agentName] = [agentLoc[0], agentLoc[1]]
-
-        # Init obstacles
-        for blockedCell in self.parsedMap['blockedCells']:
-            self.gridMap[blockedCell[0], blockedCell[1]] = OBJECT_MAP['T']
-
-        # Put agents in the grids
-        for idx, agent in enumerate(self.parsedMap['agentLocs'].keys()):
-            self.gridMap[self.parsedMap['agentLocs'][agent][0], self.parsedMap['agentLocs'][agent][1]] = 100 + int(agent[-1])
-        
-        return self.getAllAgentsObservation(self.agentLocs, self.gridMap.copy())
+        gridMap = self.populateObstacles(self.parsedMap['blockedCells'], gridMap)
+        gridMap = self.populateAgents(self.parsedMap['agentLocs'], gridMap)
+        self.gridMap = gridMap
+        return self.getAllAgentsObservation(self.parsedMap['agentLocs'], gridMap.copy())
     
     def render(self,):
-        img = self.uiHandler.render(self.gridMap, self.agentLocs, self.parsedMap['agentGoals'])
+        img = self.uiHandler.render(self.gridMap, self.parsedMap['agentLocs'], self.parsedMap['agentGoals'])
 
         img = np.asarray(img)
         from gym.envs.classic_control import rendering
@@ -85,3 +83,7 @@ class makeEnv():
         self.viewer.imshow(img)
         time.sleep(100)
         return self.viewer.isopen
+    
+
+    def step(self, action):
+        pass
