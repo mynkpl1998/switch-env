@@ -13,3 +13,9 @@ UI_CONSTS['cell_size'] = 50
 Color link -> https://sashat.me/2017/01/11/list-of-20-simple-distinct-colors/
 '''
 UI_CONSTS['distinct_colors'] = ["#800000", '#9A6324', '#808000', '#469990', '#000075', '#e6194B', '#f58231', '#bfef45', '#911eb4', '#f032e6', '#a9a9a9', '#ffd8b1']
+
+ACTION_MAP = {}
+ACTION_MAP[0] = 'UP'
+ACTION_MAP[1] = 'DOWN'
+ACTION_MAP[2] = 'LEFT'
+ACTION_MAP[3] = 'RIGHT'

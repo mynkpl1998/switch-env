@@ -44,20 +44,14 @@ class makeEnv():
                 obsVector[idx] = gridMap[index[0], index[1]]
         return obsVector.reshape(3,3).copy()
     
-    def getState(self, agentLocs, gridMap):
-        state = gridMap.copy()
-        startCount = AGENT_START_INDEX
-        for agentID in agentLocs:
-            index = agentLocs[agentID]
-            state[index[0], index[1]] = startCount
-            startCount += 1
-        return state
+    def getState(self, gridMap):
+        return gridMap.copy()
 
     def getAllAgentsObservation(self, agentLocs, gridMap):
         obs = {}
         for agentID in agentLocs.keys():
             obs[agentID] = self.getAgentObservation(agentLocs[agentID], gridMap)
-        obs['state'] = self.getState(agentLocs, gridMap)
+        obs['state'] = self.getState(gridMap)
         return obs
 
     def reset(self):
@@ -77,7 +71,7 @@ class makeEnv():
 
         # Put agents in the grids
         for idx, agent in enumerate(self.parsedMap['agentLocs'].keys()):
-            self.gridMap[self.parsedMap['agentLocs'][agent][0], self.parsedMap['agentLocs'][agent][1]] = AGENT_START_INDEX + idx
+            self.gridMap[self.parsedMap['agentLocs'][agent][0], self.parsedMap['agentLocs'][agent][1]] = 100 + int(agent[-1])
         
         return self.getAllAgentsObservation(self.agentLocs, self.gridMap.copy())
     
