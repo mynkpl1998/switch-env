@@ -6,13 +6,14 @@ import random
 from ui import ui
 import numpy as np
 from common import readFile
+from gym.spaces import Box, Discrete
 from mapParser import mapParser
-from constants import OBJECT_MAP, AGENT_START_INDEX, ACTION_MAP
+from constants import OBJECT_MAP, AGENT_START_INDEX, ACTION_MAP, GOAL_START_INDEX, SUCCESS_START_INDEX
 
 
 class makeEnv():
 
-    def __init__(self, gridMapFile, frameDelay=0.05, cooperative=False):
+    def __init__(self, gridMapFile, frameDelay=0.05, cooperative=True):
 
         # Delay between two frames
         self.frameDelay = frameDelay
@@ -36,9 +37,25 @@ class makeEnv():
 
         # Variables
         self.agentIDs = list(self.parsedMapOrig['agentLocs'].keys())
+        self.numAgents = len(self.agentIDs)
+        self.observation_space = self.getObservationSpace(self.parsedMapOrig['rows'], self.parsedMapOrig['cols'], self.agentIDs)
+        self.action_space = self.getActionSpace(self.agentIDs)
+    
+    def getObservationSpace(self, rows, cols, agentIDs):
+        obsSpace = {}
+        for agent in agentIDs:
+            obsSpace[agent] = Box(low=0.0, high=SUCCESS_START_INDEX + len(agentIDs), shape=(3, 3))
+        obsSpace['state'] = Box(low=0.0, high=SUCCESS_START_INDEX + len(agentIDs), shape=(rows, cols))
+        return obsSpace
+    
+    def getActionSpace(self, agentIDs):
+        actSpace = {}
+        for agent in agentIDs:
+            actSpace[agent] = Discrete(len(ACTION_MAP))
+        #actSpace['state'] = Discrete(len(ACTION_MAP))
+        return actSpace
 
     def getAgentObservation(self, agentLoc, gridMap):
-        
         '''
         Order of observation
         0 1 2
@@ -71,7 +88,7 @@ class makeEnv():
     
     def populateAgents(self, agentLocs, grid):
         for idx, agent in enumerate(agentLocs.keys()):
-            grid[agentLocs[agent][0], agentLocs[agent][1]] = 100 + int(agent[-1])
+            grid[agentLocs[agent][0], agentLocs[agent][1]] = AGENT_START_INDEX + int(agent[-1])
         return grid
     
     def buildDoneDict(self, agents):
@@ -91,6 +108,11 @@ class makeEnv():
                     availableCells.append(tup)
         numGoals = random.sample(availableCells, len(agentLocs))
         return numGoals
+    
+    def populateGoals(self, agentGoals, grid):
+        for idx, agent in enumerate(agentGoals.keys()):
+            grid[agentGoals[agent][0], agentGoals[agent][1]] = GOAL_START_INDEX + int(agent[-1])
+        return grid
 
     def reset(self):
         
@@ -106,6 +128,7 @@ class makeEnv():
         gridMap = np.zeros((self.parsedMap['rows'], self.parsedMap['cols']))
         gridMap = self.populateObstacles(self.parsedMap['blockedCells'], gridMap)
         gridMap = self.populateAgents(self.parsedMap['agentLocs'], gridMap)
+        gridMap = self.populateGoals(self.parsedMap['agentGoals'], gridMap)
         self.gridMap = gridMap
         self.dones = self.buildDoneDict(self.parsedMap['agentLocs'].keys())
         return self.getAllAgentsObservation(self.parsedMap['agentLocs'], gridMap.copy())
@@ -165,6 +188,11 @@ class makeEnv():
             agentLoc = self.checkValidCell(newAgentLoc, obstacles, otherAgentsLoc, agentLoc)
         return agentLoc
     
+    def populateSuccess(self, agentGoals, agentLocs, grid):
+        for idx, agent in enumerate(agentGoals.keys()):
+            if agentGoals[agent] == agentLocs[agent]:
+                grid[agentGoals[agent][0], agentGoals[agent][1]] = SUCCESS_START_INDEX + int(agent[-1])
+        return grid
 
     def step(self, action):
         
@@ -195,6 +223,8 @@ class makeEnv():
         gridMap = np.zeros((self.parsedMap['rows'], self.parsedMap['cols']))
         gridMap = self.populateObstacles(self.parsedMap['blockedCells'], gridMap)
         gridMap = self.populateAgents(self.parsedMap['agentLocs'], gridMap)
+        gridMap = self.populateGoals(self.parsedMap['agentGoals'], gridMap)
+        gridMap = self.populateSuccess(self.parsedMap['agentGoals'], self.parsedMap['agentLocs'], gridMap)
         self.gridMap = gridMap
         obsDict = self.getAllAgentsObservation(self.parsedMap['agentLocs'], gridMap.copy())
         
