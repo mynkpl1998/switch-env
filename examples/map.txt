@@ -1,5 +1,5 @@
-x1s o o T T T T T o o x1e
+x1 o o T T T T T o o o
 o o o T T T T T o o o
 o o o o o o o o o o o
-o o o T T T T T o o o
-x2e o o T T T T T o o x2s
+o o o o o o o o o o o
+x2 o o T T T T T o o x2

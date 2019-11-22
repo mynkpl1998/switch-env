@@ -5,7 +5,7 @@ if __name__ == "__main__":
     exampleMap = '/home/mayank/Documents/switch-env/examples/map.txt'
     env = makeEnv(gridMapFile=exampleMap, frameDelay=0.01)
 
-    for ep in range(0, 10):
+    for ep in range(0, 1):
         obs = env.reset()
         count = 0
         print("Reset...")
