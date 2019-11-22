@@ -2,6 +2,7 @@ import gym
 import time
 import copy
 import pygame
+import random
 from ui import ui
 import numpy as np
 from common import readFile
@@ -79,11 +80,27 @@ class makeEnv():
             dones[agent] = False
         dones['__all__'] = False
         return copy.deepcopy(dones)
+    
+    def genGoals(self, rows, cols, obstacles, agentLocs):
+        mergedList = obstacles + agentLocs
+        availableCells = []
+        for row in range(0, rows):
+            for col in range(0, cols):
+                tup = (row, col)
+                if tup not in mergedList:
+                    availableCells.append(tup)
+        numGoals = random.sample(availableCells, len(agentLocs))
+        return numGoals
 
     def reset(self):
         
         # Reset the map
         self.parsedMap = copy.deepcopy(self.parsedMapOrig)
+        goals = self.genGoals(self.parsedMap['rows'], self.parsedMap['cols'], self.parsedMap['blockedCells'], list(self.parsedMap['agentLocs'].values()))
+        
+        # Populate goals
+        for idx, agent in enumerate(self.parsedMap['agentLocs']):
+            self.parsedMap['agentGoals'][agent] = goals[idx]
 
         # Create empty grid
         gridMap = np.zeros((self.parsedMap['rows'], self.parsedMap['cols']))

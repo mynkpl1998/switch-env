@@ -27,20 +27,20 @@ class mapParser():
         
         for row in range(0, rows):
             for col in range(0, cols):
-                if gridMap.iloc[row][col].startswith('x') and gridMap.iloc[row][col].endswith('s'):
+                if gridMap.iloc[row][col].startswith('x'):
                     numAgents['numAgents'] += 1
                     if int(gridMap.iloc[row][col][1]) < 0:
                         raise ValueError("agent id should be positive")
                     agentName = 'agent_%d'%(int(gridMap.iloc[row][col][1]))
                     agentGoals['agentGoals'][agentName] = None
                     agentLocs['agentLocs'][agentName] = (row, col)
-        
+        '''
         for row in range(0, rows):
             for col in range(0, cols):
                 if gridMap.iloc[row][col].startswith('x') and gridMap.iloc[row][col].endswith('e'):
                     agentName = 'agent_%d'%(int(gridMap.iloc[row][col][1]))
                     agentGoals['agentGoals'][agentName] = (row, col)
-        
+        '''
         return numAgents, agentLocs, agentGoals
     
     def parseObstacles(self, gridMap):
