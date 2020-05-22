@@ -19,7 +19,7 @@ while True:
         break
 ```
 
-## How to create a map via Example
+## How to create a map ? (Example)
 
 The following scheme is used to represent the various entities in the map.
 
