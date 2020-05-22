@@ -13,7 +13,7 @@ from constants import OBJECT_MAP, AGENT_START_INDEX, ACTION_MAP, GOAL_START_INDE
 
 class makeEnv():
 
-    def __init__(self, gridMapFile, frameDelay=0.05, cooperative=True):
+    def __init__(self, gridMapFile, frameDelay=0.05, cooperative=True, parseTargets=True):
 
         # Delay between two frames
         self.frameDelay = frameDelay
@@ -28,7 +28,7 @@ class makeEnv():
         self.gridMapFileHandle = readFile(self.gridMapFile)
 
         # Parse map
-        self.gridParser = mapParser(self.gridMapFileHandle)
+        self.gridParser = mapParser(self.gridMapFileHandle, parseTargets)
         self.parsedMapOrig = copy.deepcopy(self.gridParser.parseMap())
 
         # UI object
@@ -40,6 +40,8 @@ class makeEnv():
         self.numAgents = len(self.agentIDs)
         self.observation_space = self.getObservationSpace(self.parsedMapOrig['rows'], self.parsedMapOrig['cols'], self.agentIDs)
         self.action_space = self.getActionSpace(self.agentIDs)
+        self.isResetCalledAtleastOnce = False
+        self.parseTargets = parseTargets
     
     def getObservationSpace(self, rows, cols, agentIDs):
         obsSpace = {}
@@ -98,7 +100,7 @@ class makeEnv():
         dones['__all__'] = False
         return copy.deepcopy(dones)
     
-    def genGoals(self, rows, cols, obstacles, agentLocs):
+    def genGoals(self, rows, cols, obstacles, agentLocs, agentIDs):
         mergedList = obstacles + agentLocs
         availableCells = []
         for row in range(0, rows):
@@ -106,7 +108,10 @@ class makeEnv():
                 tup = (row, col)
                 if tup not in mergedList:
                     availableCells.append(tup)
-        numGoals = random.sample(availableCells, len(agentLocs))
+        numGoal = random.sample(availableCells, len(agentLocs))
+        numGoals = {}
+        for agent, target in zip(agentIDs, numGoal):
+            numGoals[agent] = target
         return numGoals
     
     def populateGoals(self, agentGoals, grid):
@@ -116,14 +121,24 @@ class makeEnv():
 
     def reset(self):
         
-        # Reset the map
-        self.parsedMap = copy.deepcopy(self.parsedMapOrig)
-        goals = self.genGoals(self.parsedMap['rows'], self.parsedMap['cols'], self.parsedMap['blockedCells'], list(self.parsedMap['agentLocs'].values()))
-        
-        # Populate goals
-        for idx, agent in enumerate(self.parsedMap['agentLocs']):
-            self.parsedMap['agentGoals'][agent] = goals[idx]
+        '''
+        Sets all done to false. 
+        To allow detecting invalid call to step and render.
+        '''
+        self.all_done = False
+        self.isResetCalledAtleastOnce = True
 
+        # Reset the map
+        self.parsedMap = copy.deepcopy(self.parsedMapOrig)        
+        if self.parseTargets:
+            goals = self.parsedMap['agentGoals']
+        else:
+            goals = self.genGoals(self.parsedMap['rows'], self.parsedMap['cols'], self.parsedMap['blockedCells'], list(self.parsedMap['agentLocs'].values()), list(self.parsedMap['agentLocs'].keys()))
+
+        # Populate goals
+        for agentID in goals.keys():
+            self.parsedMap['agentGoals'][agentID] = goals[agentID]
+        
         # Create empty grid
         gridMap = np.zeros((self.parsedMap['rows'], self.parsedMap['cols']))
         gridMap = self.populateObstacles(self.parsedMap['blockedCells'], gridMap)
@@ -134,6 +149,10 @@ class makeEnv():
         return self.getAllAgentsObservation(self.parsedMap['agentLocs'], gridMap.copy())
     
     def render(self,):
+
+        if not self.isResetCalledAtleastOnce:
+            raise RuntimeError('Call reset() before accessing render()')
+    
         img = self.uiHandler.render(self.gridMap, self.parsedMap['agentLocs'], self.parsedMap['agentGoals'])
 
         img = np.asarray(img)
@@ -195,6 +214,10 @@ class makeEnv():
         return grid
 
     def step(self, action):
+
+        # Check for valid step call
+        if self.all_done:
+            raise RuntimeError("Episode has ended. Call reset().")
         
         # Updates agent position
         for agent in action:
@@ -236,6 +259,10 @@ class makeEnv():
         for agent in self.parsedMap['agentGoals'].keys():
             allDone = allDone and self.dones[agent]
         self.dones['__all__'] = allDone
+        if self.dones['__all__']:
+            self.all_done = True
+        else:
+            self.all_done = False
 
         # Reward Calculation
         rewardDict = {}

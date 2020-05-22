@@ -3,8 +3,9 @@ import pandas as pd
 
 class mapParser():
 
-    def __init__(self, mapHandle):
+    def __init__(self, mapHandle, parseTargets):
         self.mapHandle = mapHandle
+        self.parseTargets = parseTargets
     
     def parseMap(self):
         gridMap = pd.read_csv(self.mapHandle, sep=' ', header=None)
@@ -14,6 +15,15 @@ class mapParser():
         numAgents, agentLocs, agentGoals = self.parseAgents(gridMap)
         obstacles = self.parseObstacles(gridMap)
         return self.packData(numAgents, agentLocs, agentGoals, obstacles, rows, cols)
+    
+    def parseAgentsGoal(self, gridMap, agentID):
+        rows, cols = gridMap.shape[0], gridMap.shape[1]
+
+        for row in range(0, rows):
+            for col in range(0, cols):
+                if gridMap.iloc[row][col].startswith('g%d'%(agentID)):
+                    return (row, col)
+        raise RuntimeError("No target was found againt agent_%d"%(agentID))
     
     def parseAgents(self, gridMap):
         numAgents = {}
@@ -32,7 +42,10 @@ class mapParser():
                     if int(gridMap.iloc[row][col][1]) < 0:
                         raise ValueError("agent id should be positive")
                     agentName = 'agent_%d'%(int(gridMap.iloc[row][col][1]))
-                    agentGoals['agentGoals'][agentName] = None
+                    if self.parseTargets:
+                        agentGoals['agentGoals'][agentName] = self.parseAgentsGoal(gridMap, int(gridMap.iloc[row][col][1]))
+                    else:
+                        agentGoals['agentGoals'][agentName] = None
                     agentLocs['agentLocs'][agentName] = (row, col)
         '''
         for row in range(0, rows):
@@ -41,6 +54,7 @@ class mapParser():
                     agentName = 'agent_%d'%(int(gridMap.iloc[row][col][1]))
                     agentGoals['agentGoals'][agentName] = (row, col)
         '''
+        print(agentGoals)
         return numAgents, agentLocs, agentGoals
     
     def parseObstacles(self, gridMap):
