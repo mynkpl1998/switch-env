@@ -25,14 +25,15 @@ The following scheme is used to represent the various entities in the map.
 
 1. Free - o
 2. Occupied - T
-3. Agent - x
+3. Agent start location - x
+4. Agent target location - g
 
 An example map with 2 agents and a narrow lane.
 
 ```
-x1 o o T T T T o o o
+x1 o o T T T T o o g1
 o o o o o o o o o o
-o o o o o o o o o x2
+g2 o o o o o o o o x2
 ```
 
 
