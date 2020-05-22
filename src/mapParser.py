@@ -23,7 +23,7 @@ class mapParser():
             for col in range(0, cols):
                 if gridMap.iloc[row][col].startswith('g%d'%(agentID)):
                     return (row, col)
-        raise RuntimeError("No target was found againt agent_%d"%(agentID))
+        raise RuntimeError("No target was found against agent_%d"%(agentID))
     
     def parseAgents(self, gridMap):
         numAgents = {}
@@ -54,7 +54,6 @@ class mapParser():
                     agentName = 'agent_%d'%(int(gridMap.iloc[row][col][1]))
                     agentGoals['agentGoals'][agentName] = (row, col)
         '''
-        print(agentGoals)
         return numAgents, agentLocs, agentGoals
     
     def parseObstacles(self, gridMap):
