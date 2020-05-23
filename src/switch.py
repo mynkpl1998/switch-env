@@ -152,7 +152,7 @@ class makeEnv():
 
         if not self.isResetCalledAtleastOnce:
             raise RuntimeError('Call reset() before accessing render()')
-    
+
         img = self.uiHandler.render(self.gridMap, self.parsedMap['agentLocs'], self.parsedMap['agentGoals'])
 
         img = np.asarray(img)
@@ -259,6 +259,7 @@ class makeEnv():
         for agent in self.parsedMap['agentGoals'].keys():
             allDone = allDone and self.dones[agent]
         self.dones['__all__'] = allDone
+
         if self.dones['__all__']:
             self.all_done = True
         else:
