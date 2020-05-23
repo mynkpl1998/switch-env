@@ -4,7 +4,7 @@
 
 ```
 exampleMap = '/home/mayank/Documents/switch-env/examples/map.txt'
-env = makeEnv(gridMapFile=exampleMap, frameDelay=0.01)
+env = makeEnv(gridMapFile=exampleMap, fps=60)
 obs = env.reset()
 
 while True:

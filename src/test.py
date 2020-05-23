@@ -3,7 +3,7 @@ import numpy as np
 
 if __name__ == "__main__":
     exampleMap = '/home/mayank/Documents/MARLC/MARLC/experiments/narrowLane_2agent.map'
-    env = makeEnv(gridMapFile=exampleMap, frameDelay=0.01, parseTargets=True)
+    env = makeEnv(gridMapFile=exampleMap, fps=120, parseTargets=True, cooperative=False)
     
     for i in range(0, 1):
         env.reset()
@@ -16,7 +16,6 @@ if __name__ == "__main__":
                 actions[agent] = np.random.randint(0, 5)
             
             nextObs, reward, dones, _ = env.step(actions)
-
             if dones['__all__']:
                 env.render()
                 input()

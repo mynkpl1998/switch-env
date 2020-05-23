@@ -13,10 +13,10 @@ from constants import OBJECT_MAP, AGENT_START_INDEX, ACTION_MAP, GOAL_START_INDE
 
 class makeEnv():
 
-    def __init__(self, gridMapFile, frameDelay=0.05, cooperative=True, parseTargets=True):
+    def __init__(self, gridMapFile, fps=30, cooperative=True, parseTargets=True):
 
         # Delay between two frames
-        self.frameDelay = frameDelay
+        self.frameDelay = 1/float(fps)
 
         # Agents type
         self.cooperative = cooperative
